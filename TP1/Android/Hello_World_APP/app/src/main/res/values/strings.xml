@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">Hello World V2</string>
+    <string name="hello_string">Hello Android World!</string>
+    <string name="first_app">My First App</string>
+    <string  name="image">ImageView: android:contentDescription=”Just smile”</string>
+    <string name="activity_oncreate_msg">\"Activity %1$s onCreate\"</string>
+    <string name="button">Change color</string>
+</resources>
