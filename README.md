@@ -4,4 +4,4 @@ Student(s): Rodrigo Amaral\
 Repository URL: [https://github.com/6H0ST3010/Computacao_movel](https://github.com/6H0ST3010/Computacao_movel)
 -
 ## Introduction
-The porpuse of this repository its to store activitys, its divide with folders for each activity each one has a 'README' file describing the everthing about that activity.
+The purpose of this repository it's to store activitys, the repository is divide with folders for each activity and each one has a 'README' file describing everthing about that activity.
