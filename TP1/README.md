@@ -3,7 +3,7 @@
 Course: LEIC\
 Student(s): Rodrigo Amaral\
 Date: 15/3/26\
-Repository URL: https://github.com/6H0ST3010/Computacao_movel/TP1
+Repository URL: [https://github.com/6H0ST3010/Computacao_movel/TP1](https://github.com/6H0ST3010/Computacao_movel/tree/main/TP1)
 ---
 ## 1. Introduction
 This assignment introduces students to the fundamentals of Kotlin and Android development. The purpose of this guide is to provide a comprehensive introduction to the language, development environment, and basic programming concepts essential for the development of mobile applications. At the end of this assignment, students will acquire a basic understanding of the development of Kotlin and Android.
