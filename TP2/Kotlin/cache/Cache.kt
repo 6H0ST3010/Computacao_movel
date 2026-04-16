@@ -42,6 +42,10 @@ class Cache<K : Any, V: Any>{
         return store.toMap()
     }
 
+    fun filterValues(predicate: (V) -> Boolean): Map<K, V>{
+        return store.filterValues(predicate).toMap()
+    }
+
 }
 
 fun main(){
@@ -61,6 +65,8 @@ fun main(){
     println("Transform 'kotlin': ${wordCache.transform("kotlin") {it + 1}}")
     println("Transform 'cobol': ${wordCache.transform("cobol") {it + 1}}")
     println("Snapshot: ${wordCache.snapshot()}")
+
+    println("Words with count > 0: " + wordCache.filterValues { it > 0 })
 
     println("--- Id registry cache ---")
     val idCache = Cache<Int, String>()

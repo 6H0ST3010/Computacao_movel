@@ -27,6 +27,32 @@ class Pipeline {
             }
         }
     }
+
+    fun compose(sname1: String, sname2: String){
+        val stage1 = stages.find { it.name == sname1 }
+        val stage2 = stages.find { it.name == sname2 }
+        val newstage = "$sname1 & $sname2"
+
+        if (stage1 == null || stage2 == null){
+            println("Stages not found")
+            return
+        }
+
+        stages.remove(stage1)
+        stages.remove(stage2)
+
+        val newtransformation = { input: List<String> ->
+            stage2.transform(stage1.transform(input))
+        }
+        addStage(newstage, newtransformation)
+    }
+
+    fun fork(pipe1: Pipeline, pipe2: Pipeline, input: List<String>): Pair<List<String>, List<String>>{
+        val res1 = pipe1.execute(input)
+        val res2 = pipe2.execute(input)
+
+        return Pair(res1, res2)
+    }
 }
 
 fun buildPipeline(block: Pipeline.() -> Unit): Pipeline {
@@ -65,6 +91,21 @@ fun main(){
 
     samplePipeline.describe()
 
+    samplePipeline.compose("Trim", "Uppercase")
+    samplePipeline.describe()
+
     println("Result:")
     samplePipeline.execute(logs).forEach { println(it) }
+
+    val altPipeline = buildPipeline{
+        addStage("Lowercase"){ lines ->
+            lines.map{it.lowercase()}
+        }
+    }
+    val mainPipeline = Pipeline()
+    println("Fork result:")
+    val (res1, res2) = mainPipeline.fork(samplePipeline,altPipeline, logs)
+    println("Result fork:")
+    res1.forEach { println(it) }
+    res2.forEach { println(it) }
 }
