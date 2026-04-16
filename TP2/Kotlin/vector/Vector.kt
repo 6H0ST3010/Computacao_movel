@@ -46,6 +46,18 @@ data class Vec2(val x: Double, val y: Double): Comparable<Vec2>{
             else -> throw IndexOutOfBoundsException("Vec2 has only indices 0 and 1")
         }
     }
+
+    /* conflict with the class
+    operator fun component1(): Double{
+        return x
+    }
+    operator fun componente2(): Double {
+        return y
+    }*/
+}
+
+operator fun Double.times(v: Vec2): Vec2{
+    return Vec2(this * v.x, this * v.y)
 }
 
 fun main(){
@@ -68,4 +80,9 @@ fun main(){
     val vectors = listOf ( Vec2 (1.0 , 0.0) , Vec2 (3.0 , 4.0) , Vec2 (0.0 , 2.0) )
     println (" Longest = ${vectors.max()}") // Longest = Vec2 (x=3.0 ,y =4.0)
     println (" Shortest = ${vectors.min()}") // Shortest = Vec2 (x=1.0 ,y =0.0)
+
+    println("2.0 * a = ${2.0 * a}") // 2.0 * a = Vec2 (x=6.0 , y =8.0)
+    val (x, y) = b
+    println("x = $x") // x = 1.0
+    println("y = $y") //y = 2.0
 }
