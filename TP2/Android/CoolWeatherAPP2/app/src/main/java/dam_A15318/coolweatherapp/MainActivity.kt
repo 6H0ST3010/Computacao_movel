@@ -1,6 +1,5 @@
 package dam_A15318.coolweatherapp
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -14,14 +13,17 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Button
 import android.widget.EditText
+import java.net.HttpURLConnection
 import android.util.Log
 
 class MainActivity : AppCompatActivity() {
-    private var day = if (java.util.Calendar.getInstance().get(
-            java.util.Calendar.HOUR_OF_DAY
-        ) in 6..18) 1 else 0 //0-night / 1-day
+    private var day = 1 //0-night / 1-day
+    private var isUpdatingTheme = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val sharedPref = getPreferences(MODE_PRIVATE)
+        day = sharedPref.getInt("DAY_MODE", 1)
+
         applyTheme()
         super.onCreate(savedInstanceState)
 
@@ -45,15 +47,25 @@ class MainActivity : AppCompatActivity() {
 
     private fun updateUI(request: WeatherData) {
         runOnUiThread {
-            val timeString = request.current_weather.time  // e.g. "2024-06-10T14:00"
+            val timeString = request.current_weather.time
             val hour = timeString.substring(11, 13).toInt()
             val newDay = if (hour in 6..18) 1 else 0
-            if (newDay != day) {
+            if (newDay != day && !isUpdatingTheme) {
+                isUpdatingTheme = true
                 day = newDay
+
+                with(getPreferences(MODE_PRIVATE).edit()) {
+                    putInt("DAY_MODE", day)
+                    apply()
+                }
+
                 applyTheme()
                 recreate()
                 return@runOnUiThread
             }
+
+            isUpdatingTheme = false
+
             val weatherImage: ImageView = findViewById(R.id.weatherImage)
             var latText: EditText = findViewById(R.id.id_lat2)
             var longText: EditText = findViewById(R.id.id_long2)
@@ -63,8 +75,8 @@ class MainActivity : AppCompatActivity() {
             val temperatureText: TextView = findViewById(R.id.id_temp2)
             val timeText: TextView = findViewById(R.id.id_time2)
 
-            latText.setText(request.latitude)
-            longText.setText(request.longitude)
+            latText.setText(request.latitude.toString())
+            longText.setText(request.longitude.toString())
 
             pressureText.text = request.hourly.pressure_msl.get (12).toString() + " hPa"
 
@@ -107,12 +119,30 @@ class MainActivity : AppCompatActivity() {
 
         private fun WeatherAPI_Call(lat: Float, long: Float): WeatherData? {
                 // Remove spaces and build URL correctly
-                val reqString = "https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m"
-                val url = URL ( reqString) ;
-                url . openStream () . use {
-                    val request = Gson () . fromJson ( InputStreamReader (it ,"UTF-8") ,WeatherData :: class . java )
-                    return request
+            val reqString =
+                "https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m"
+            val url = URL(reqString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+
+            return try {
+                val code = connection.responseCode
+
+                if (code == 200) {
+                    connection.inputStream.use {
+                        Gson().fromJson(
+                            InputStreamReader(it, "UTF-8"),
+                            WeatherData::class.java
+                        )
+                    }
+                } else {
+                    val error = connection.errorStream?.bufferedReader()?.readText()
+                    Log.e("API_ERROR", "HTTP $code -> $error")
+                    null
                 }
+            } finally {
+                connection.disconnect()
+            }
             }
     private fun fetchWeatherData(lat: Float, long: Float): Thread {
         return Thread {
