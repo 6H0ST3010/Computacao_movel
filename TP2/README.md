@@ -123,7 +123,6 @@ Missing/invalid API response
 Device rotation during API request
 
 ## 6. Usage Instructions
----
 Requirements
 Android Studio
 Android Emulator or Physical Device
@@ -212,7 +211,6 @@ Implementing dynamic theme switching correctly
 Preserving latitude/longitude values during screen rotation
 
 ## 14. Future Improvements
----
 Potential enhancements include:
 Refactor weather app to MVVM architecture
 Add offline caching
