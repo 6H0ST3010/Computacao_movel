@@ -123,6 +123,7 @@ Missing/invalid API response
 Device rotation during API request
 
 ## 6. Usage Instructions
+---
 Requirements
 Android Studio
 Android Emulator or Physical Device
@@ -137,7 +138,7 @@ Launch emulator/device
 Run application
 Enter latitude/longitude if desired
 Press Update
----
+
 # Autonomous Software Engineering Sections - only for [AC OK , AI OK] sections
 ## 7. Prompting Strategy
 “Help fix Android theme not updating after orientation change”
@@ -211,6 +212,7 @@ Implementing dynamic theme switching correctly
 Preserving latitude/longitude values during screen rotation
 
 ## 14. Future Improvements
+---
 Potential enhancements include:
 Refactor weather app to MVVM architecture
 Add offline caching
@@ -219,7 +221,6 @@ Add loading indicators
 Support automatic GPS location
 Implement weather forecast for multiple days
 Improve UI animations and transitions
----
 
 ## 15. AI Usage Disclosure ( Mandatory )
 The following AI tools were used during development:
