@@ -13,8 +13,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Button
 import android.widget.EditText
-import java.net.HttpURLConnection
-import android.util.Log
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import com.google.android.gms.location.LocationServices
 
 class MainActivity : AppCompatActivity() {
     private var day = 1 //0-night / 1-day
@@ -42,7 +44,34 @@ class MainActivity : AppCompatActivity() {
             val lon = lonEdit.text.toString().toFloatOrNull() ?: -9.125f
             fetchWeatherData(lat, lon).start()
         }
-        fetchWeatherData(38.75f, -9.125f).start()
+        getCurrentLocation()
+    }
+
+    private fun getCurrentLocation() {
+        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 100)
+            return
+        }
+
+        fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+            if (location != null) {
+                val lat = location.latitude.toFloat()
+                val lon = location.longitude.toFloat()
+                fetchWeatherData(lat, lon).start()
+            } else {
+                fetchWeatherData(38.75f, -9.125f).start()
+            }
+        }
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            getCurrentLocation()
+        }
     }
 
     private fun updateUI(request: WeatherData) {
@@ -85,14 +114,10 @@ class MainActivity : AppCompatActivity() {
             temperatureText.text = request.current_weather.temperature.toString() + "°C"
             timeText.text = request.current_weather.time
 
-                // Update weather image
-            val weatherMap = getWeatherCodeMap()
-            val wCode = weatherMap.get(request.current_weather.weathercode)
+            val wCode = getWeatherInfo(request.current_weather.weathercode)
 
-            val wImage = when (wCode) {
-                WMO_WeatherCode.CLEAR_SKY,
-                WMO_WeatherCode.MAINLY_CLEAR,
-                WMO_WeatherCode.PARTLY_CLOUDY -> {
+            val wImage = when (wCode?.code) {
+                0,1,2 -> {
                     if (day == 1) {
                         wCode?.image + "day"
                     } else {
@@ -116,34 +141,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
-        private fun WeatherAPI_Call(lat: Float, long: Float): WeatherData? {
-                // Remove spaces and build URL correctly
-            val reqString =
-                "https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m"
-            val url = URL(reqString)
-            val connection = url.openConnection() as HttpURLConnection
-            connection.requestMethod = "GET"
-
-            return try {
-                val code = connection.responseCode
-
-                if (code == 200) {
-                    connection.inputStream.use {
-                        Gson().fromJson(
-                            InputStreamReader(it, "UTF-8"),
-                            WeatherData::class.java
-                        )
-                    }
-                } else {
-                    val error = connection.errorStream?.bufferedReader()?.readText()
-                    Log.e("API_ERROR", "HTTP $code -> $error")
-                    null
-                }
-            } finally {
-                connection.disconnect()
-            }
-            }
+    private fun WeatherAPI_Call(lat: Float, long: Float): WeatherData? {
+        val reqString =
+            "https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current_weather=true&hourly=temperature_2m,weathercode,pressure_msl,windspeed_10m"
+        val url = URL(reqString.toString());
+        url.openStream().use {
+            val request =
+                Gson().fromJson(InputStreamReader(it, "UTF-8"), WeatherData::class.java)
+            return request
+        }
+    }
     private fun fetchWeatherData(lat: Float, long: Float): Thread {
         return Thread {
             val weather = WeatherAPI_Call(lat, long)
@@ -151,6 +158,25 @@ class MainActivity : AppCompatActivity() {
                 updateUI(weather)
             }
         }
+    }
+
+    data class WeatherInfo(
+        val code: Int,
+        val description: String,
+        val image: String
+    )
+
+    private fun getWeatherInfo(code: Int): WeatherInfo? {
+        val codes = resources.getStringArray(R.array.weather_codes)
+        val descriptions = resources.getStringArray(R.array.weather_descriptions)
+        val images = resources.getStringArray(R.array.weather_images)
+
+        for (i in codes.indices) {
+            if (codes[i].toInt() == code) {
+                return WeatherInfo(codes[i].toInt(), descriptions[i], images[i])
+            }
+        }
+        return null
     }
 
     private fun applyTheme() {
